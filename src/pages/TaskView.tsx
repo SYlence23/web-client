@@ -5,6 +5,7 @@ import { ApiError } from '../api/client.ts'
 import { cancelRender, getRender, renderKey, rendersKey } from '../api/renders.ts'
 import { useRenderSocket } from '../api/useRenderSocket.ts'
 import ProgressBar from '../components/ProgressBar.tsx'
+import QueueInfo from '../components/QueueInfo.tsx'
 import RenderImage from '../components/RenderImage.tsx'
 import StatusBadge from '../components/StatusBadge.tsx'
 import { ACTIVE_STATUSES } from '../limits.ts'
@@ -79,7 +80,11 @@ export default function TaskView() {
           <p className="font-mono text-xs text-slate-500">{task.id}</p>
         </div>
 
-        {task.status !== 'queued' && <ProgressBar value={task.progress} />}
+        {task.status === 'queued' ? (
+          <QueueInfo position={task.queuePosition} etaSeconds={task.etaSeconds} />
+        ) : (
+          <ProgressBar value={task.progress} />
+        )}
 
         {task.error && (
           <p className="rounded-md border border-red-900 bg-red-950/50 px-3 py-2 text-sm text-red-300">{task.error}</p>
