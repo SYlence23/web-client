@@ -1,16 +1,23 @@
 import { Link } from 'react-router'
+import AuthForm from './AuthForm.tsx'
+import { useAuth } from './useAuth.ts'
 
 export default function LoginPage() {
+  const { login } = useAuth()
+
   return (
-    <div className="space-y-4 text-center">
-      <h1 className="text-lg font-medium">Log in</h1>
-      <p className="text-sm text-slate-400">The login form will be here.</p>
-      <p className="text-sm text-slate-400">
-        No account?{' '}
-        <Link to="/register" className="text-accent-400 hover:underline">
-          Register
-        </Link>
-      </p>
-    </div>
+    <AuthForm
+      title="Log in"
+      submitLabel="Log in"
+      onSubmit={login}
+      footer={
+        <>
+          No account?{' '}
+          <Link to="/register" className="text-accent-400 hover:underline">
+            Register
+          </Link>
+        </>
+      }
+    />
   )
 }

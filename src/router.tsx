@@ -1,6 +1,8 @@
 import { createBrowserRouter } from 'react-router'
+import AdminRoute from './auth/AdminRoute.tsx'
 import AuthLayout from './auth/AuthLayout.tsx'
 import LoginPage from './auth/LoginPage.tsx'
+import ProtectedRoute from './auth/ProtectedRoute.tsx'
 import RegisterPage from './auth/RegisterPage.tsx'
 import Layout from './components/Layout.tsx'
 import Admin from './pages/Admin.tsx'
@@ -18,13 +20,21 @@ export const router = createBrowserRouter([
     ],
   },
   {
-    Component: Layout,
+    Component: ProtectedRoute,
     children: [
-      { index: true, Component: NewRender },
-      { path: 'renders/:id', Component: TaskView },
-      { path: 'history', Component: History },
-      { path: 'admin', Component: Admin },
-      { path: '*', Component: NotFound },
+      {
+        Component: Layout,
+        children: [
+          { index: true, Component: NewRender },
+          { path: 'renders/:id', Component: TaskView },
+          { path: 'history', Component: History },
+          {
+            Component: AdminRoute,
+            children: [{ path: 'admin', Component: Admin }],
+          },
+          { path: '*', Component: NotFound },
+        ],
+      },
     ],
   },
 ])
