@@ -20,7 +20,7 @@ The client talks **only** to [web-load-balancer](../web-load-balancer). It never
 
 ### New render form
 
-- **Scene:** dropdown filled from `GET /scenes`
+- **Scene:** cards for the worker scenes listed in `src/scenes.ts` (`spheres`, `glass`, `random`)
 - **Resolution:** presets (480p, 720p, 1080p) or custom width and height
 - **Quality:** samples per pixel (e.g. 16 / 64 / 256)
 - **Complexity meter:** `width × height × spp` compared with the limit, turning red when over
@@ -61,7 +61,6 @@ All requests go to the gateway. Authenticated requests send `Authorization: Bear
 | Method | Path | Used by |
 |---|---|---|
 | `POST` | `/auth/register`, `/auth/login` | Auth pages |
-| `GET` | `/scenes` | New render form |
 | `POST` | `/renders` | Start button |
 | `GET` | `/renders` | History |
 | `GET` | `/renders/{id}` | Task view (initial load, polling fallback) |
@@ -100,9 +99,11 @@ web-client/
 │   │   ├── History.tsx
 │   │   └── Admin.tsx
 │   ├── components/            # ProgressBar, ComplexityMeter, RenderImage, StatusBadge
-│   └── limits.ts              # same limits as the gateway
+│   ├── limits.ts              # same limits as the gateway
+│   └── scenes.ts              # scene list (the gateway has no GET /scenes)
 ├── index.html
-├── vite.config.ts             # dev proxy to the gateway
+├── vite.config.ts             # dev proxy to the gateway (/api)
+├── nginx.conf                 # production proxy and SPA fallback
 ├── Dockerfile
 └── package.json
 ```
@@ -116,16 +117,16 @@ npm install
 npm run dev        # http://localhost:5173
 ```
 
-`vite.config.ts` proxies API calls to the gateway, so there is no CORS setup:
+The client calls the API under `/api/...`. `vite.config.ts` proxies that prefix to the gateway and strips it, so there is no CORS setup and page routes like `/renders/:id` or `/admin` never clash with API paths:
 
 ```ts
 server: {
   proxy: {
-    '/auth': 'http://localhost:8000',
-    '/renders': 'http://localhost:8000',
-    '/scenes': 'http://localhost:8000',
-    '/admin': 'http://localhost:8000',
-    '/ws': { target: 'ws://localhost:8000', ws: true },
+    '/api': {
+      target: 'http://localhost:8000',
+      ws: true,
+      rewrite: (path) => path.replace(/^\/api/, ''),
+    },
   },
 }
 ```
@@ -136,21 +137,21 @@ server: {
 npm run build      # outputs dist/
 ```
 
-`dist/` is static files. Either the gateway serves them, or a small container serves them. Either way the browser still only talks to the gateway.
+`dist/` is static files. The `Dockerfile` builds them with Node and serves them with nginx. `nginx.conf` falls back to `index.html` for client-side routes and proxies `/api/` (HTTP and WebSocket) to `load-balancer:8000`, exactly like the dev proxy. The browser still only talks to one origin.
 
-**Whole system:** run `docker compose up --build` from the main `raytracer` repo.
+**Whole system:** run `docker compose up --build` from the main `raytracer` repo and open http://localhost:8080.
 
 ## Roadmap
 
-- [ ] Vite + React + TypeScript project, routing, layout
-- [ ] Login and register, token storage, protected routes
-- [ ] New render form with client-side validation and the complexity meter
-- [ ] Task view with polling first (progress + partial image)
-- [ ] Switch progress to WebSocket
-- [ ] History page with thumbnails
-- [ ] Queue position and ETA display
-- [ ] Admin panel
-- [ ] Dockerfile / static build served via the gateway
+- [x] Vite + React + TypeScript project, routing, layout
+- [x] Login and register, token storage, protected routes
+- [x] New render form with client-side validation and the complexity meter
+- [x] Task view with polling first (progress + partial image)
+- [x] Switch progress to WebSocket
+- [x] History page with thumbnails
+- [x] Queue position and ETA display
+- [x] Admin panel
+- [x] Dockerfile with nginx serving the static build
 
 ## Backlog
 
