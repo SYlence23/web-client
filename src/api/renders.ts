@@ -1,7 +1,17 @@
+import { useQuery } from '@tanstack/react-query'
+import { isActive } from '../limits.ts'
 import { apiBlob, apiFetch } from './client.ts'
 import type { RenderCreated, RenderRequest, RenderStatus } from './types.ts'
 
 export const rendersKey = ['renders'] as const
+
+export function useRenders() {
+  return useQuery({
+    queryKey: rendersKey,
+    queryFn: listRenders,
+    refetchInterval: (query) => (query.state.data?.some((render) => isActive(render.status)) ? 3000 : false),
+  })
+}
 
 export function renderKey(id: string) {
   return ['renders', id] as const

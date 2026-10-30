@@ -6,6 +6,12 @@ export function formatDuration(seconds: number): string {
   return `${Math.floor(minutes / 60)} h ${minutes % 60} min`
 }
 
+const dateTimeFormat = new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeStyle: 'short' })
+
+export function formatDateTime(iso: string): string {
+  return dateTimeFormat.format(new Date(iso))
+}
+
 export function ordinal(position: number): string {
   const tens = position % 100
   if (tens >= 11 && tens <= 13) return `${position}th`

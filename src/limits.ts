@@ -8,6 +8,10 @@ export const MAX_ACTIVE_RENDERS = 3
 
 export const ACTIVE_STATUSES: TaskStatus[] = ['queued', 'running']
 
+export function isActive(status: TaskStatus): boolean {
+  return ACTIVE_STATUSES.includes(status)
+}
+
 export function complexity(width: number, height: number, spp: number): number {
   return width * height * spp
 }

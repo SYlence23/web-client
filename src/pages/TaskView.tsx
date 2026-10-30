@@ -8,7 +8,7 @@ import ProgressBar from '../components/ProgressBar.tsx'
 import QueueInfo from '../components/QueueInfo.tsx'
 import RenderImage from '../components/RenderImage.tsx'
 import StatusBadge from '../components/StatusBadge.tsx'
-import { ACTIVE_STATUSES } from '../limits.ts'
+import { isActive } from '../limits.ts'
 import { SCENES } from '../scenes.ts'
 
 function Detail({ label, children }: { label: string; children: ReactNode }) {
@@ -29,10 +29,10 @@ export default function TaskView() {
     queryFn: () => getRender(id),
     refetchInterval: (query) => {
       const status = query.state.data?.status
-      return status && ACTIVE_STATUSES.includes(status) && !live ? 1000 : false
+      return status && isActive(status) && !live ? 1000 : false
     },
   })
-  const active = render.data ? ACTIVE_STATUSES.includes(render.data.status) : false
+  const active = render.data ? isActive(render.data.status) : false
   const live = useRenderSocket(id, active)
 
   const cancel = useMutation({

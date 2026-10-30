@@ -1,17 +1,9 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useState, type FormEvent, type ReactNode } from 'react'
 import { Link, useNavigate } from 'react-router'
-import { createRender, listRenders, rendersKey } from '../api/renders.ts'
-import type { RenderStatus } from '../api/types.ts'
+import { createRender, rendersKey, useRenders } from '../api/renders.ts'
 import ComplexityMeter from '../components/ComplexityMeter.tsx'
-import {
-  ACTIVE_STATUSES,
-  MAX_ACTIVE_RENDERS,
-  MAX_HEIGHT,
-  MAX_WIDTH,
-  complexity,
-  renderProblems,
-} from '../limits.ts'
+import { MAX_ACTIVE_RENDERS, MAX_HEIGHT, MAX_WIDTH, complexity, isActive, renderProblems } from '../limits.ts'
 import { SCENES } from '../scenes.ts'
 
 const RESOLUTIONS = [
@@ -27,10 +19,6 @@ const QUALITIES = [
   { label: 'High', spp: 128 },
   { label: 'Best', spp: 256 },
 ]
-
-function isActive(render: RenderStatus) {
-  return ACTIVE_STATUSES.includes(render.status)
-}
 
 function OptionButton({ active, onClick, children }: { active: boolean; onClick: () => void; children: ReactNode }) {
   return (
@@ -60,12 +48,8 @@ export default function NewRender() {
   const [height, setHeight] = useState(720)
   const [spp, setSpp] = useState(64)
 
-  const renders = useQuery({
-    queryKey: rendersKey,
-    queryFn: listRenders,
-    refetchInterval: (query) => (query.state.data?.some(isActive) ? 3000 : false),
-  })
-  const activeCount = renders.data?.filter(isActive).length ?? 0
+  const renders = useRenders()
+  const activeCount = renders.data?.filter((render) => isActive(render.status)).length ?? 0
   const tooManyActive = activeCount >= MAX_ACTIVE_RENDERS
 
   const mutation = useMutation({
