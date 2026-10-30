@@ -3,6 +3,7 @@ import type { ReactNode } from 'react'
 import { Link, useParams } from 'react-router'
 import { ApiError } from '../api/client.ts'
 import { cancelRender, getRender, renderKey, rendersKey } from '../api/renders.ts'
+import { useRenderSocket } from '../api/useRenderSocket.ts'
 import ProgressBar from '../components/ProgressBar.tsx'
 import RenderImage from '../components/RenderImage.tsx'
 import StatusBadge from '../components/StatusBadge.tsx'
@@ -27,9 +28,11 @@ export default function TaskView() {
     queryFn: () => getRender(id),
     refetchInterval: (query) => {
       const status = query.state.data?.status
-      return status && ACTIVE_STATUSES.includes(status) ? 1000 : false
+      return status && ACTIVE_STATUSES.includes(status) && !live ? 1000 : false
     },
   })
+  const active = render.data ? ACTIVE_STATUSES.includes(render.data.status) : false
+  const live = useRenderSocket(id, active)
 
   const cancel = useMutation({
     mutationFn: () => cancelRender(id),
@@ -56,7 +59,6 @@ export default function TaskView() {
   }
 
   const task = render.data
-  const active = ACTIVE_STATUSES.includes(task.status)
   const sceneName = SCENES.find((scene) => scene.id === task.scene)?.name ?? task.scene
 
   return (
@@ -68,6 +70,11 @@ export default function TaskView() {
           <div className="flex items-center gap-3">
             <h1 className="text-2xl font-semibold">{sceneName}</h1>
             <StatusBadge status={task.status} />
+            {active && (
+              <span className={`text-xs ${live ? 'text-emerald-400' : 'text-slate-500'}`}>
+                {live ? 'live' : 'polling'}
+              </span>
+            )}
           </div>
           <p className="font-mono text-xs text-slate-500">{task.id}</p>
         </div>
