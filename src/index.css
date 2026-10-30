@@ -1,0 +1,12 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: ui-sans-serif, system-ui, "Segoe UI", sans-serif;
+  --color-accent-400: oklch(0.8 0.15 70);
+  --color-accent-500: oklch(0.74 0.17 60);
+  --color-accent-600: oklch(0.66 0.17 50);
+}
+
+body {
+  @apply min-h-screen bg-slate-950 text-slate-100 antialiased;
+}
